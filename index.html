@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="description" content="Acceso rápido a las aplicaciones de ChifoRedEs.">
+  <title>ChifoRedEs | Mis aplicaciones</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0f19;
+      --text: #f7f8ff;
+      --muted: #b7bfd3;
+      --panel: rgba(18, 24, 42, .72);
+      --border: rgba(255,255,255,.14);
+      --accent: #a78bfa;
+    }
+    * { box-sizing: border-box; }
+    html { min-height: 100%; background: var(--bg); }
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
+      padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      overflow-x: hidden;
+    }
+    .mesh-background { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+    .blob {
+      position: absolute; width: min(72vw, 540px); aspect-ratio: 1;
+      border-radius: 50%; filter: blur(85px); opacity: .34;
+      animation: float 20s ease-in-out infinite alternate;
+    }
+    .color-1 { background: #ff2a5f; top: -22%; left: -20%; }
+    .color-2 { background: #4338ca; bottom: -25%; right: -20%; animation-duration: 24s; }
+    .color-3 { background: #14b8a6; bottom: 5%; left: 12%; width: min(50vw, 380px); animation-duration: 18s; }
+    .color-4 { background: #9333ea; top: 8%; right: 8%; width: min(48vw, 360px); animation-duration: 26s; }
+    @keyframes float {
+      from { transform: translate3d(-2%, 0, 0) scale(.96); }
+      to { transform: translate3d(5%, 7%, 0) scale(1.08); }
+    }
+    .page { width: min(100%, 920px); margin: 0 auto; }
+    header { text-align: center; padding: clamp(18px, 5vh, 48px) 0 26px; }
+    .brand-mark {
+      display: inline-grid; place-items: center; width: 58px; height: 58px;
+      margin-bottom: 14px; border-radius: 18px; font-size: 1.45rem; font-weight: 850;
+      letter-spacing: -.08em; color: white; background: linear-gradient(135deg, #8b5cf6, #0d9488);
+      box-shadow: 0 10px 35px rgba(99,102,241,.28);
+    }
+    h1 { margin: 0; font-size: clamp(1.8rem, 7vw, 2.7rem); letter-spacing: -.045em; line-height: 1.1; }
+    .subtitle { margin: 10px 0 0; color: var(--muted); font-size: 1rem; }
+    .glass-card {
+      padding: clamp(16px, 4vw, 30px); border: 1px solid var(--border); border-radius: 26px;
+      background: var(--panel); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+      box-shadow: 0 22px 70px rgba(0,0,0,.22);
+    }
+    .section-heading { margin: 0 0 16px; font-size: .82rem; font-weight: 700; color: #c7cce0; letter-spacing: .13em; text-transform: uppercase; }
+    .app-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .app-link {
+      position: relative; min-height: 126px; padding: 18px 14px; display: flex; flex-direction: column;
+      justify-content: center; align-items: flex-start; gap: 13px; text-align: left;
+      color: var(--text); text-decoration: none; border: 1px solid rgba(255,255,255,.12);
+      border-radius: 18px; background: rgba(255,255,255,.055);
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .app-link:hover, .app-link:focus-visible {
+      transform: translateY(-3px); background: rgba(255,255,255,.11); border-color: rgba(196,181,253,.65);
+      outline: none;
+    }
+    .app-link:active { transform: scale(.985); }
+    .app-icon {
+      display: grid; place-items: center; width: 44px; height: 44px; flex: 0 0 auto;
+      border-radius: 14px; font-size: 1.35rem; background: var(--icon-bg, rgba(167,139,250,.18));
+    }
+    .app-name { font-size: 1rem; font-weight: 650; line-height: 1.25; }
+    .app-arrow { position: absolute; top: 17px; right: 15px; color: #9ca6c2; font-size: 1.1rem; }
+    .utilities-button { width: 100%; margin-top: 12px; flex-direction: row; align-items: center; min-height: 88px; }
+    .utilities-button .app-copy { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+    .utilities-button .app-hint { color: var(--muted); font-size: .83rem; line-height: 1.35; }
+    footer { text-align: center; padding: 22px 0 4px; color: #8f98b1; font-size: .78rem; }
+    .modal-backdrop {
+      position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; padding: 18px;
+      background: rgba(3,6,15,.72); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    }
+    .modal-backdrop[hidden] { display: none; }
+    .modal {
+      width: min(100%, 480px); padding: 22px; border: 1px solid rgba(255,255,255,.18);
+      border-radius: 24px; background: rgba(20,26,45,.96); box-shadow: 0 24px 90px rgba(0,0,0,.48);
+      animation: modal-in .18s ease-out;
+    }
+    @keyframes modal-in { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }
+    .modal-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .modal h2 { margin: 0; font-size: 1.35rem; letter-spacing: -.025em; }
+    .modal-description { margin: 6px 0 0; color: var(--muted); font-size: .9rem; }
+    .close-button {
+      display: grid; place-items: center; flex: 0 0 auto; width: 40px; height: 40px; border-radius: 12px;
+      color: white; font-size: 1.35rem; border: 1px solid var(--border); background: rgba(255,255,255,.07);
+      cursor: pointer;
+    }
+    .modal-links { display: grid; gap: 10px; }
+    .modal-links .app-link { min-height: 86px; flex-direction: row; align-items: center; padding: 15px; }
+    .modal-links .app-name { flex: 1; }
+    .modal-links .app-arrow { position: static; font-size: 1.3rem; }
+    @media (min-width: 620px) {
+      body { padding-left: 24px; padding-right: 24px; }
+      .app-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+      .app-link { min-height: 150px; padding: 20px 16px; }
+      .utilities-button { min-height: 94px; }
+    }
+    @media (max-height: 680px) and (max-width: 619px) {
+      header { padding: 10px 0 18px; }
+      .brand-mark { width: 46px; height: 46px; margin-bottom: 10px; border-radius: 14px; }
+      .app-link { min-height: 105px; padding: 13px; gap: 9px; }
+      .app-icon { width: 38px; height: 38px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="mesh-background" aria-hidden="true">
+    <div class="blob color-1"></div><div class="blob color-2"></div>
+    <div class="blob color-3"></div><div class="blob color-4"></div>
+  </div>
+
+  <main class="page">
+    <header>
+      <div class="brand-mark" aria-hidden="true">CR</div>
+      <h1>ChifoRedEs</h1>
+      <p class="subtitle">Todas tus aplicaciones, en un solo lugar</p>
+    </header>
+
+    <section class="glass-card" aria-labelledby="apps-title">
+      <h2 class="section-heading" id="apps-title">Mis aplicaciones</h2>
+      <nav class="app-grid" aria-label="Aplicaciones principales">
+        <a class="app-link" href="https://ChifoRedEs.github.io/JuegosReunidos/index.html">
+          <span class="app-arrow" aria-hidden="true">↗</span>
+          <span class="app-icon" style="--icon-bg:rgba(251,146,60,.16)" aria-hidden="true">🎲</span>
+          <span class="app-name">Juegos Reunidos</span>
+        </a>
+        <a class="app-link" href="https://ChifoRedEs.github.io/LibroJuegos/index.html">
+          <span class="app-arrow" aria-hidden="true">↗</span>
+          <span class="app-icon" style="--icon-bg:rgba(96,165,250,.16)" aria-hidden="true">📚</span>
+          <span class="app-name">LibroJuegos</span>
+        </a>
+        <a class="app-link" href="https://ChifoRedEs.github.io/Menu-Semanal/index.html">
+          <span class="app-arrow" aria-hidden="true">↗</span>
+          <span class="app-icon" style="--icon-bg:rgba(52,211,153,.16)" aria-hidden="true">🥗</span>
+          <span class="app-name">Menú Semanal</span>
+        </a>
+        <a class="app-link" href="https://ChifoRedEs.github.io/Rutina-GYM/index.html">
+          <span class="app-arrow" aria-hidden="true">↗</span>
+          <span class="app-icon" style="--icon-bg:rgba(192,132,252,.16)" aria-hidden="true">🏋️</span>
+          <span class="app-name">Rutina-GYM</span>
+        </a>
+      </nav>
+
+      <button class="app-link utilities-button" id="open-utilities" type="button" aria-haspopup="dialog" aria-controls="utilities-modal" aria-expanded="false">
+        <span class="app-icon" style="--icon-bg:rgba(167,139,250,.18)" aria-hidden="true">🧰</span>
+        <span class="app-copy">
+          <span class="app-name">Otras Utilidades</span>
+          <span class="app-hint">Exámenes, test y finanzas</span>
+        </span>
+        <span class="app-arrow" aria-hidden="true">＋</span>
+      </button>
+    </section>
+    <footer>ChifoRedEs · Acceso personal</footer>
+  </main>
+
+  <div class="modal-backdrop" id="utilities-modal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-describedby="modal-description">
+      <div class="modal-header">
+        <div>
+          <h2 id="modal-title">Otras Utilidades</h2>
+          <p class="modal-description" id="modal-description">Selecciona la aplicación que quieres abrir.</p>
+        </div>
+        <button class="close-button" id="close-utilities" type="button" aria-label="Cerrar ventana">×</button>
+      </div>
+      <nav class="modal-links" aria-label="Otras aplicaciones">
+        <a class="app-link" href="https://ChifoRedEs.github.io/Examenes/index.html">
+          <span class="app-icon" style="--icon-bg:rgba(251,191,36,.16)" aria-hidden="true">📝</span>
+          <span class="app-name">Exámenes y Test</span>
+          <span class="app-arrow" aria-hidden="true">↗</span>
+        </a>
+        <a class="app-link" href="https://ChifoRedEs.github.io/Finanzas/index.html">
+          <span class="app-icon" style="--icon-bg:rgba(52,211,153,.16)" aria-hidden="true">💶</span>
+          <span class="app-name">Finanzas</span>
+          <span class="app-arrow" aria-hidden="true">↗</span>
+        </a>
+      </nav>
+    </section>
+  </div>
+
+  <script>
+    (() => {
+      const openButton = document.getElementById('open-utilities');
+      const closeButton = document.getElementById('close-utilities');
+      const modal = document.getElementById('utilities-modal');
+      let previousFocus = null;
+
+      function openModal() {
+        previousFocus = document.activeElement;
+        modal.hidden = false;
+        openButton.setAttribute('aria-expanded', 'true');
+        closeButton.focus();
+      }
+      function closeModal() {
+        modal.hidden = true;
+        openButton.setAttribute('aria-expanded', 'false');
+        if (previousFocus) previousFocus.focus();
+      }
+
+      openButton.addEventListener('click', openModal);
+      closeButton.addEventListener('click', closeModal);
+      modal.addEventListener('click', (event) => {
+        if (event.target === modal) closeModal();
+      });
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !modal.hidden) closeModal();
+      });
+    })();
+  </script>
+</body>
+</html>
