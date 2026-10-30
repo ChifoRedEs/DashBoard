@@ -32,14 +32,19 @@
     }
     * { box-sizing: border-box; }
     html {
-      min-height: 100%;
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
       background:
         radial-gradient(120% 80% at 50% -10%, #151b38 0%, transparent 60%),
         linear-gradient(180deg, var(--bg-2), var(--bg) 70%) fixed, var(--bg);
     }
     body {
-      min-height: 100vh;
-      min-height: 100dvh;
+      position: fixed; inset: 0;
+      height: 100%;
+      overflow: hidden;
+      overscroll-behavior: none;
+      touch-action: manipulation;
       margin: 0;
       padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom));
       font-family: var(--font-body);
@@ -90,8 +95,13 @@
     }
 
     /* ---------- Layout ---------- */
-    .page { width: min(100%, 960px); margin: 0 auto; perspective: 1400px; }
-    header { text-align: center; padding: clamp(20px, 6vh, 56px) 0 30px; }
+    .page {
+      position: absolute; left: 50%; top: 50%;
+      width: min(calc(100% - 32px), 960px); perspective: 1400px;
+      transform: translate(-50%, -50%) scale(var(--fit, 1)); transform-origin: 50% 50%;
+    }
+    @media (min-width: 620px) { .page { width: min(calc(100% - 48px), 960px); } }
+    header { text-align: center; padding: clamp(4px, 3vh, 34px) 0 clamp(14px, 3vh, 28px); }
 
     /* Cubo 3D de marca */
     .cube-wrap { width: 64px; height: 64px; margin: 0 auto 22px; perspective: 500px; }
@@ -265,16 +275,28 @@
       color: #0b0f19; background: linear-gradient(135deg, var(--gold), #ffe9bd);
     }
 
-    footer { text-align: center; padding: 26px 0 6px; color: var(--soft); font-size: .78rem; letter-spacing: .04em; }
+    footer { text-align: center; padding: clamp(10px, 2.5vh, 24px) 0 0; color: var(--soft); font-size: .78rem; letter-spacing: .04em; }
 
-    /* Onda al pulsar */
-    .ripple {
-      position: absolute; z-index: 2; border-radius: 50%; pointer-events: none;
-      width: 12px; height: 12px; margin: -6px 0 0 -6px;
-      background: rgba(255,255,255,.45); transform: scale(0);
-      animation: ripple .65s var(--ease-out) forwards;
+    /* Gota cayendo al agua: pequeñas ondas concéntricas */
+    .drop {
+      position: fixed; z-index: 70; width: 0; height: 0; pointer-events: none;
     }
-    @keyframes ripple { to { transform: scale(40); opacity: 0; } }
+    .drop::before {
+      content: ""; position: absolute; left: -2.5px; top: -2.5px; width: 5px; height: 5px; border-radius: 50%;
+      background: rgba(255,255,255,.9); box-shadow: 0 0 8px rgba(var(--glow, 167,139,250), .9);
+      animation: drop-hit .35s ease-out forwards;
+    }
+    .drop i {
+      position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,.75);
+      box-shadow: 0 0 6px rgba(var(--glow, 167,139,250), .55), inset 0 0 4px rgba(var(--glow, 167,139,250), .4);
+      transform: scale(0); opacity: 0;
+      animation: wave .9s cubic-bezier(.2,.7,.3,1) forwards;
+    }
+    .drop i:nth-child(2) { animation-delay: .14s; border-width: 1.2px; }
+    .drop i:nth-child(3) { animation-delay: .28s; border-width: 1px; }
+    @keyframes drop-hit { 0% { transform: translateY(-14px) scale(.6); opacity: 0; } 40% { transform: none; opacity: 1; } 100% { transform: scale(.2); opacity: 0; } }
+    @keyframes wave { 0% { transform: scale(.05); opacity: .95; } 100% { transform: scale(1); opacity: 0; } }
 
     /* ---------- Modal 3D ---------- */
     .modal-backdrop {
@@ -329,11 +351,12 @@
     /* ---------- Transición de salida al abrir una app ---------- */
     .warp {
       position: fixed; inset: 0; z-index: 50; pointer-events: none; opacity: 0;
-      background: radial-gradient(circle at var(--wx, 50%) var(--wy, 50%), rgba(var(--wc, 167,139,250), .55), rgba(7,10,20,.98) 45%);
-      transition: opacity .2s ease;
+      background: rgba(7,10,20,.55);
+      transition: opacity .25s ease;
     }
     body.leaving .warp { opacity: 1; }
-    body.leaving .page, body.leaving .modal { transition: transform .25s var(--ease-out), opacity .25s ease; transform: scale(.97); opacity: .5; }
+    body.leaving .page, body.leaving .modal { transition: transform .25s var(--ease-out), opacity .25s ease; opacity: .5; }
+    body.leaving .page { transform: translate(-50%, -50%) scale(calc(var(--fit, 1) * .97)); }
     .app-link.launching { --lift: 60px; z-index: 60; }
 
     /* ---------- Responsive ---------- */
@@ -508,19 +531,36 @@
         });
       }
 
-      /* Onda al pulsar */
+      /* Gota de agua al pulsar */
+      function dropAt(x, y, glow) {
+        const d = document.createElement('span');
+        d.className = 'drop';
+        d.style.left = x + 'px';
+        d.style.top = y + 'px';
+        if (glow) d.style.setProperty('--glow', glow);
+        d.innerHTML = '<i></i><i></i><i></i>';
+        document.body.appendChild(d);
+        setTimeout(() => d.remove(), 1300);
+      }
       document.querySelectorAll('.app-link').forEach((el) => {
         el.addEventListener('pointerdown', (e) => {
           if (reduceMotion) return;
-          const r = el.getBoundingClientRect();
-          const dot = document.createElement('span');
-          dot.className = 'ripple';
-          dot.style.left = (e.clientX - r.left) + 'px';
-          dot.style.top = (e.clientY - r.top) + 'px';
-          el.appendChild(dot);
-          dot.addEventListener('animationend', () => dot.remove());
+          dropAt(e.clientX, e.clientY, getComputedStyle(el).getPropertyValue('--glow').trim());
         });
       });
+
+      /* Ajusta el contenido para que quepa siempre en pantalla, sin scroll */
+      const page = document.querySelector('.page');
+      function fit() {
+        page.style.setProperty('--fit', 1);
+        const cs = getComputedStyle(document.body);
+        const availH = document.body.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+        const h = page.offsetHeight;
+        page.style.setProperty('--fit', h > availH ? (availH / h).toFixed(4) : 1);
+      }
+      fit();
+      window.addEventListener('resize', fit);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
 
       /* Precarga la app al pasar el ratón, enfocar o tocar, para que abra más rápido */
       const prefetched = new Set();
@@ -535,16 +575,11 @@
 
       /* Transición al abrir una aplicación: la navegación empieza al instante
          y el efecto visual se muestra mientras carga la siguiente página */
-      const warp = document.querySelector('.warp');
-      document.querySelectorAll('a.app-link').forEach((link) => {
+            document.querySelectorAll('a.app-link').forEach((link) => {
         ['pointerenter', 'focus', 'touchstart'].forEach((ev) =>
           link.addEventListener(ev, () => prefetch(link.href), { passive: true }));
         link.addEventListener('click', (e) => {
           if (reduceMotion || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || link.target === '_blank') return;
-          const r = link.getBoundingClientRect();
-          warp.style.setProperty('--wx', (r.left + r.width / 2) + 'px');
-          warp.style.setProperty('--wy', (r.top + r.height / 2) + 'px');
-          warp.style.setProperty('--wc', getComputedStyle(link).getPropertyValue('--glow').trim() || '167,139,250');
           link.classList.add('launching');
           document.body.classList.add('leaving');
         });
