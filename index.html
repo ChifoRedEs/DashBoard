@@ -277,26 +277,16 @@
 
     footer { text-align: center; padding: clamp(10px, 2.5vh, 24px) 0 0; color: var(--soft); font-size: .78rem; letter-spacing: .04em; }
 
-    /* Gota cayendo al agua: pequeñas ondas concéntricas */
-    .drop {
-      position: fixed; z-index: 70; width: 0; height: 0; pointer-events: none;
+    /* Círculo de color al pulsar (tamaño mediano) */
+    .ripple {
+      position: fixed; z-index: 70; pointer-events: none; border-radius: 50%;
+      width: 180px; height: 180px; margin: -90px 0 0 -90px;
+      background: radial-gradient(circle, rgba(var(--glow, 167,139,250), .55) 0%, rgba(var(--glow, 167,139,250), .25) 45%, transparent 70%);
+      box-shadow: 0 0 0 2px rgba(var(--glow, 167,139,250), .35);
+      transform: scale(.05); opacity: 1;
+      animation: ripple .7s var(--ease-out) forwards;
     }
-    .drop::before {
-      content: ""; position: absolute; left: -2.5px; top: -2.5px; width: 5px; height: 5px; border-radius: 50%;
-      background: rgba(255,255,255,.9); box-shadow: 0 0 8px rgba(var(--glow, 167,139,250), .9);
-      animation: drop-hit .35s ease-out forwards;
-    }
-    .drop i {
-      position: absolute; left: -22px; top: -22px; width: 44px; height: 44px; border-radius: 50%;
-      border: 1.5px solid rgba(255,255,255,.75);
-      box-shadow: 0 0 6px rgba(var(--glow, 167,139,250), .55), inset 0 0 4px rgba(var(--glow, 167,139,250), .4);
-      transform: scale(0); opacity: 0;
-      animation: wave .9s cubic-bezier(.2,.7,.3,1) forwards;
-    }
-    .drop i:nth-child(2) { animation-delay: .14s; border-width: 1.2px; }
-    .drop i:nth-child(3) { animation-delay: .28s; border-width: 1px; }
-    @keyframes drop-hit { 0% { transform: translateY(-14px) scale(.6); opacity: 0; } 40% { transform: none; opacity: 1; } 100% { transform: scale(.2); opacity: 0; } }
-    @keyframes wave { 0% { transform: scale(.05); opacity: .95; } 100% { transform: scale(1); opacity: 0; } }
+    @keyframes ripple { 60% { opacity: .9; } to { transform: scale(1); opacity: 0; } }
 
     /* ---------- Modal 3D ---------- */
     .modal-backdrop {
@@ -348,10 +338,60 @@
       color: #0b0f19; background: linear-gradient(135deg, #5eead4, #a7f3d0);
     }
 
+    /* ---------- Ventana de confirmación de acceso ---------- */
+    .confirm-backdrop { z-index: 20; }
+    .confirm {
+      --glow: 167,139,250;
+      width: min(100%, 380px); padding: 30px 24px 24px; text-align: center; overflow: visible;
+      background:
+        radial-gradient(120% 70% at 50% 0%, rgba(var(--glow), .22), transparent 60%),
+        linear-gradient(160deg, rgba(34,30,66,.97), rgba(14,18,36,.98) 60%);
+      transform-origin: 50% 50%;
+      animation: confirm-in .5s var(--ease-spring) both;
+    }
+    @keyframes confirm-in { from { opacity: 0; transform: perspective(900px) rotateX(-30deg) translateY(24px) scale(.9); } to { opacity: 1; transform: none; } }
+    .closing .confirm { animation: modal-out .24s ease-in forwards; }
+    .confirm-icon {
+      display: grid; place-items: center; width: 76px; height: 76px; margin: -2px auto 18px;
+      border-radius: 24px; font-size: 2.2rem;
+      background: linear-gradient(145deg, rgba(var(--glow), .38), rgba(var(--glow), .12));
+      border: 1px solid rgba(var(--glow), .5);
+      box-shadow: 0 14px 34px rgba(var(--glow), .30), inset 0 1px 0 rgba(255,255,255,.25);
+      animation: bob 3s ease-in-out infinite;
+    }
+    @keyframes bob { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-6px) rotate(3deg); } }
+    .confirm h2 { margin: 0; font-family: var(--font-display); font-size: 1.3rem; letter-spacing: -.02em; line-height: 1.3; }
+    .confirm h2 strong { color: rgb(var(--glow)); font-weight: 700; }
+    .confirm p { margin: 8px 0 0; color: var(--muted); font-size: .9rem; }
+    .confirm p:empty { display: none; }
+    .confirm-actions { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; margin-top: 24px; }
+    .btn {
+      position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      min-height: 50px; padding: 0 18px; border-radius: 16px; cursor: pointer;
+      font: 600 .98rem var(--font-display); text-decoration: none; color: var(--text);
+      border: 1px solid var(--border-strong); background: rgba(255,255,255,.06);
+      transition: transform .3s var(--ease-spring), background .3s ease, box-shadow .3s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:hover, .btn:focus-visible { transform: translateY(-2px); background: rgba(255,255,255,.12); outline: none; }
+    .btn:active { transform: translateY(1px) scale(.98); }
+    .btn-enter {
+      color: #0b0f19; border-color: transparent;
+      background: linear-gradient(135deg, #fff, rgb(var(--glow)));
+      box-shadow: 0 10px 26px rgba(var(--glow), .40);
+    }
+    .btn-enter:hover, .btn-enter:focus-visible { background: linear-gradient(135deg, #fff, rgb(var(--glow))); box-shadow: 0 14px 34px rgba(var(--glow), .55); }
+    .btn-enter:focus-visible { box-shadow: 0 0 0 3px rgba(255,255,255,.6), 0 14px 34px rgba(var(--glow), .55); }
+    .btn-enter span { transition: transform .35s var(--ease-out); }
+    .btn-enter:hover span, .btn-enter:focus-visible span { transform: translateX(4px); }
+    .confirm-x { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; font-size: 1.15rem; border-radius: 11px; }
+
     /* ---------- Transición de salida al abrir una app ---------- */
     .warp {
       position: fixed; inset: 0; z-index: 50; pointer-events: none; opacity: 0;
-      background: rgba(7,10,20,.55);
+      background:
+        radial-gradient(circle 230px at var(--wx, 50%) var(--wy, 50%), rgba(var(--wc, 167,139,250), .55), transparent 100%),
+        rgba(7,10,20,.72);
       transition: opacity .25s ease;
     }
     body.leaving .warp { opacity: 1; }
@@ -483,6 +523,19 @@
     </section>
   </div>
 
+  <div class="modal-backdrop confirm-backdrop" id="confirm-modal" hidden>
+    <section class="modal confirm" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-hint">
+      <button class="close-button confirm-x" id="confirm-x" type="button" aria-label="Cancelar">×</button>
+      <div class="confirm-icon" id="confirm-icon" aria-hidden="true"></div>
+      <h2 id="confirm-title">Acceder a <strong id="confirm-name"></strong></h2>
+      <p id="confirm-hint"></p>
+      <div class="confirm-actions">
+        <button class="btn" id="confirm-cancel" type="button">Cancelar</button>
+        <a class="btn btn-enter" id="confirm-enter" href="#">Entrar <span aria-hidden="true">→</span></a>
+      </div>
+    </section>
+  </div>
+
   <script>
     (() => {
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -531,22 +584,20 @@
         });
       }
 
-      /* Gota de agua al pulsar */
-      function dropAt(x, y, glow) {
+      /* Círculo de color al pulsar */
+      function rippleAt(x, y, glow) {
+        if (reduceMotion) return;
         const d = document.createElement('span');
-        d.className = 'drop';
+        d.className = 'ripple';
         d.style.left = x + 'px';
         d.style.top = y + 'px';
         if (glow) d.style.setProperty('--glow', glow);
-        d.innerHTML = '<i></i><i></i><i></i>';
         document.body.appendChild(d);
-        setTimeout(() => d.remove(), 1300);
+        d.addEventListener('animationend', () => d.remove());
       }
-      document.querySelectorAll('.app-link').forEach((el) => {
-        el.addEventListener('pointerdown', (e) => {
-          if (reduceMotion) return;
-          dropAt(e.clientX, e.clientY, getComputedStyle(el).getPropertyValue('--glow').trim());
-        });
+      const glowOf = (el) => getComputedStyle(el).getPropertyValue('--glow').trim() || '167,139,250';
+      document.querySelectorAll('.app-link, .btn-enter').forEach((el) => {
+        el.addEventListener('pointerdown', (e) => rippleAt(e.clientX, e.clientY, glowOf(el)));
       });
 
       /* Ajusta el contenido para que quepa siempre en pantalla, sin scroll */
@@ -573,20 +624,92 @@
         document.head.appendChild(l);
       }
 
-      /* Transición al abrir una aplicación: la navegación empieza al instante
-         y el efecto visual se muestra mientras carga la siguiente página */
-            document.querySelectorAll('a.app-link').forEach((link) => {
+      /* Ventana de confirmación: al pulsar una app se pide confirmar con "Entrar" */
+      const confirmModal = document.getElementById('confirm-modal');
+      const confirmBox = confirmModal.querySelector('.confirm');
+      const confirmIcon = document.getElementById('confirm-icon');
+      const confirmName = document.getElementById('confirm-name');
+      const confirmHint = document.getElementById('confirm-hint');
+      const confirmEnter = document.getElementById('confirm-enter');
+      const confirmCancel = document.getElementById('confirm-cancel');
+      const confirmX = document.getElementById('confirm-x');
+      const warp = document.querySelector('.warp');
+      let confirmReturn = null;
+      let confirmClosing = false;
+
+      function appName(link) {
+        const n = link.querySelector('.app-name').cloneNode(true);
+        n.querySelectorAll('.new-tag, .count-badge').forEach((b) => b.remove());
+        return n.textContent.trim();
+      }
+      function openConfirm(link) {
+        confirmReturn = link;
+        confirmBox.style.setProperty('--glow', glowOf(link));
+        confirmIcon.textContent = link.querySelector('.app-icon').textContent.trim();
+        confirmName.textContent = appName(link);
+        const hint = link.querySelector('.app-hint');
+        confirmHint.textContent = hint ? hint.textContent.trim() : '';
+        confirmEnter.href = link.href;
+        confirmEnter.setAttribute('aria-label', 'Entrar en ' + appName(link));
+        confirmModal.classList.remove('closing');
+        confirmModal.hidden = false;
+        prefetch(link.href);
+        confirmEnter.focus();
+      }
+      function closeConfirm() {
+        if (confirmModal.hidden || confirmClosing) return;
+        const finish = () => {
+          confirmClosing = false;
+          confirmModal.hidden = true;
+          confirmModal.classList.remove('closing');
+          if (confirmReturn) confirmReturn.focus();
+        };
+        if (reduceMotion) return finish();
+        confirmClosing = true;
+        confirmModal.classList.add('closing');
+        setTimeout(finish, 240);
+      }
+
+      document.querySelectorAll('a.app-link').forEach((link) => {
         ['pointerenter', 'focus', 'touchstart'].forEach((ev) =>
           link.addEventListener(ev, () => prefetch(link.href), { passive: true }));
         link.addEventListener('click', (e) => {
-          if (reduceMotion || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || link.target === '_blank') return;
-          link.classList.add('launching');
-          document.body.classList.add('leaving');
+          /* Ctrl/Cmd/Mayús + clic abre directamente en otra pestaña o ventana */
+          if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+          e.preventDefault();
+          openConfirm(link);
         });
       });
+
+      /* Al pulsar "Entrar" la navegación empieza al instante, con el círculo de color de fondo */
+      confirmEnter.addEventListener('click', (e) => {
+        if (reduceMotion || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        const r = confirmEnter.getBoundingClientRect();
+        warp.style.setProperty('--wx', (r.left + r.width / 2) + 'px');
+        warp.style.setProperty('--wy', (r.top + r.height / 2) + 'px');
+        warp.style.setProperty('--wc', glowOf(confirmBox));
+        if (confirmReturn) confirmReturn.classList.add('launching');
+        document.body.classList.add('leaving');
+      });
+      confirmCancel.addEventListener('click', closeConfirm);
+      confirmX.addEventListener('click', closeConfirm);
+      confirmModal.addEventListener('click', (e) => { if (e.target === confirmModal) closeConfirm(); });
+      document.addEventListener('keydown', (e) => {
+        if (confirmModal.hidden) return;
+        e.stopImmediatePropagation();
+        if (e.key === 'Escape') closeConfirm();
+        if (e.key === 'Tab') {
+          const f = [confirmX, confirmCancel, confirmEnter];
+          const i = f.indexOf(document.activeElement);
+          e.preventDefault();
+          f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+        }
+      }, true);
+
       /* Si se vuelve atrás desde otra app, restaura la página */
       window.addEventListener('pageshow', () => {
         document.body.classList.remove('leaving');
+        confirmModal.hidden = true;
         document.querySelectorAll('.launching').forEach((el) => el.classList.remove('launching'));
       });
 
