@@ -330,10 +330,10 @@
     .warp {
       position: fixed; inset: 0; z-index: 50; pointer-events: none; opacity: 0;
       background: radial-gradient(circle at var(--wx, 50%) var(--wy, 50%), rgba(var(--wc, 167,139,250), .55), rgba(7,10,20,.98) 45%);
-      transition: opacity .45s ease;
+      transition: opacity .2s ease;
     }
     body.leaving .warp { opacity: 1; }
-    body.leaving .page, body.leaving .modal { transition: transform .5s var(--ease-out), filter .5s ease, opacity .5s ease; transform: scale(.94) translateZ(-80px); filter: blur(6px); opacity: .4; }
+    body.leaving .page, body.leaving .modal { transition: transform .25s var(--ease-out), opacity .25s ease; transform: scale(.97); opacity: .5; }
     .app-link.launching { --lift: 60px; z-index: 60; }
 
     /* ---------- Responsive ---------- */
@@ -522,19 +522,31 @@
         });
       });
 
-      /* Transición al abrir una aplicación */
+      /* Precarga la app al pasar el ratón, enfocar o tocar, para que abra más rápido */
+      const prefetched = new Set();
+      function prefetch(url) {
+        if (prefetched.has(url)) return;
+        prefetched.add(url);
+        const l = document.createElement('link');
+        l.rel = 'prefetch';
+        l.href = url;
+        document.head.appendChild(l);
+      }
+
+      /* Transición al abrir una aplicación: la navegación empieza al instante
+         y el efecto visual se muestra mientras carga la siguiente página */
       const warp = document.querySelector('.warp');
       document.querySelectorAll('a.app-link').forEach((link) => {
+        ['pointerenter', 'focus', 'touchstart'].forEach((ev) =>
+          link.addEventListener(ev, () => prefetch(link.href), { passive: true }));
         link.addEventListener('click', (e) => {
           if (reduceMotion || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || link.target === '_blank') return;
-          e.preventDefault();
           const r = link.getBoundingClientRect();
           warp.style.setProperty('--wx', (r.left + r.width / 2) + 'px');
           warp.style.setProperty('--wy', (r.top + r.height / 2) + 'px');
           warp.style.setProperty('--wc', getComputedStyle(link).getPropertyValue('--glow').trim() || '167,139,250');
           link.classList.add('launching');
           document.body.classList.add('leaving');
-          setTimeout(() => { window.location.href = link.href; }, 420);
         });
       });
       /* Si se vuelve atrás desde otra app, restaura la página */
